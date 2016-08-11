@@ -1,0 +1,90 @@
+<?php
+//TODO remove static))
+header('Content-Type: text/html; charset=utf-8');
+//ini_set('error_reporting', E_ALL);
+//ini_set('display_errors', 1);
+//ini_set('display_startup_errors', 1);
+
+
+           
+                
+//include_once('phpQuery/phpQuery.php');
+$url= 'http://diason.com.ua/';
+
+$time_start = microtime(true);
+
+$parsed_urls=url_parser::start($url);
+
+echo '<pre>';
+print_r($parsed_urls);
+echo '</pre>';
+
+$time_end = microtime(true);
+$time = $time_end - $time_start;
+
+echo "Парсил $time секунд ".count($parsed_urls)." элементов \n";
+
+
+class url_parser{
+    private static $_iterator=0;
+    public static $links=array();
+    private static $_doc=[];
+    
+    public function start($url){
+        self::$_doc = new DOMDocument();
+        self::recursive_fetch_url($url);
+        return self::$links;
+    } 
+  
+    
+    public static function recursive_fetch_url($url){
+        self::$_iterator++;
+       // echo $url.' <br>';
+        if (self::$_iterator > 150) return;
+       
+      
+        $code = file_get_contents($url);
+        
+        
+        $doc = new DOMDocument();
+        $doc->loadHTML($code);
+        
+        
+        foreach ($doc->getElementsByTagName('a') as $element) {
+            if ($element->hasAttribute('href')) {
+               
+                //echo $child_href.' <br>';
+                 
+                $child_href=$element->getAttribute('href');
+                
+                if (strpos( $child_href, 'diason.com.ua') === false) {
+                    continue;
+                }
+                if (strpos( $child_href, '@') !== false) {
+                    continue;
+                }
+                if (strpos( $child_href, '.jpg')) {
+                    continue;
+                }
+               
+                
+                $url_data=array();
+                
+                $url_data['link'] = $child_href;
+                $url_data['data'] = "";
+                //$url_data['html'] = $code;
+                 
+                
+                if (!isset(self::$links[$child_href])) {
+                    self::$links[$child_href] = $url_data;
+                    self::recursive_fetch_url($child_href); 
+                }
+               
+            }
+
+        }
+
+    }
+
+}
+

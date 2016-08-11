@@ -1,0 +1,252 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 02.08.2016, 16:14:41
+    Author     : prog
+*/
+
+.comments-ss {
+     
+    .comment_row {
+        margin-bottom: 25px;
+        padding-left: 65px;
+        position: relative;
+        min-height: 50px;
+
+    }
+    .remainingText .textareaFeedback {
+        position: absolute;
+        right: 1px;
+        bottom: 1px;
+        font-size: 12px;
+        background-color: #e5f1f8;
+        padding: 3px 7px;
+        display: none;
+        min-width: 20px;
+        text-align: center;
+    }
+
+    .comment-date {
+        display: inline-block;
+        margin-left: 10px;
+        vertical-align: top;
+        color: #8b9da7;
+        margin-top: 2px;
+    }
+    .rankingStars{ display: inline-block; vertical-align: top; margin-left:10px;}
+    .author-name{
+        margin-bottom: 6px; 
+        
+        a {
+            font-size: 15px;
+            display: inline-block;
+            line-height: 18px;
+            font-weight: bold;
+            color: rgb(52, 73, 94); 
+        }
+    }
+
+
+
+    span.bold {
+        font-weight: bold;
+    }
+
+    .hidden_comment{ display: none;}
+    .user_logo {
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background-position: 50% 0;
+        background-size: cover;
+        display: block;
+    }
+
+    .benefits {
+
+
+        margin: 15px 0;
+        padding-left: 25px;
+
+        position: relative;
+
+
+        .title {
+            font-weight: bold;
+            display: table;
+            margin-bottom: 5px;
+            color: rgb(80, 196, 3);
+
+        }
+
+        &:before {
+            content: '+';
+            position: absolute;
+            left: 1px;
+            top: 1px;
+            color: #50c403;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+    }
+
+    .lacks {
+        margin: 15px 0;
+        padding-left: 25px;
+
+        position: relative;
+
+        .title {
+            .benefits .title;
+            color: red;
+        }
+
+        &:before {
+            content: '–';
+            font-family: 'Arial';
+            position: absolute;
+            left: 2px;
+            top: -1px;
+            color: red;
+            font-size: 20px;
+            font-weight: bold
+        }
+    }
+
+    .rankingStars {
+        p{
+            margin  : 0 0 1.5em;
+            padding : 0;
+        }
+
+        a{
+            color           : #9c3;
+            text-decoration : none;
+        }
+
+        .starRating{
+            display        : inline-block;
+            width          : 7.5em;
+            height         : 1.5em;
+            overflow       : hidden;
+            vertical-align : bottom;
+        }
+
+        .starRating > input{
+            margin-right : -100%;
+            opacity      : 0;
+        }
+
+        .starRating > label{
+                width: 1.4em;
+            height: 1.4em;
+            display         : block;
+            float           : right;
+            position        : relative;
+            background      : url('../img/star-on.svg');
+            background-size : contain;
+        }
+         .starRating > label.not_active{
+            opacity:0;
+            background      : url('../img/star-off.svg');
+          
+        }
+
+/*        .starRating:not(old) > label:before{
+            content         : '';
+            display         : block;
+            width           : 1.5em;
+            height          : 1.5em;
+            background      : url('../img/star-on.svg');
+            background-size : contain;
+            opacity         : 0;
+            transition      : opacity 0.2s linear;
+        }*/
+
+        .starRating> label:hover:before,
+            .starRating > label:hover ~ label:before,
+            .starRating:not(:hover) > :checked ~ label:before{
+            opacity : 1;
+        }
+
+    }
+
+    .new_comment {
+        #commentRating{margin:10px;}
+        textarea {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            height: 82px;
+            border: 1px solid #58bdff;
+            padding: 10px 0 0 8px;
+            line-height: normal;
+            color: #34495e;
+            font-size: 13px;
+            margin-top: 3px;
+            margin-bottom: 0px;
+        }
+
+        input[type='text'] {
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            width: 100%;
+            height: 40px;
+            border: 1px solid #58bdff;
+            text-indent: 8px;
+            line-height: normal;
+            color: #34495e;
+            font-size: 13px;
+            margin-top: 3px;
+            margin-bottom: 17px;
+        }
+
+        input[type="submit"] { 
+            border: 0px;
+            padding: 0 15px;
+            height: 40px;
+            background-color: #009fff;
+            box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            padding: 0 10px;
+            font-size: 15px;
+            margin-bottom: 20px;
+            color: #fff;
+            cursor: pointer;
+            transition: .3s;
+            -webkit-transition: .3s;
+            width: 100%;
+        }
+
+        .plus_minus {
+            height: 16px;
+            padding: 0 27px 0 0;
+            color: #009fff;
+            font-size: 14px;
+            position: relative;
+            margin-right: 5px;
+            cursor: pointer;
+            display: table;
+            margin: 11px 0 17px;
+        }
+
+    }
+
+    .new_comment {
+        max-width: 565px; 
+    }
+
+    .new_comment {
+        margin: 40px 0 25px;
+        padding: 1px 0 5px 65px;
+        position: relative;
+    }
+
+}

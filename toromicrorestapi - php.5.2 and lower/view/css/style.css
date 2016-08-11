@@ -1,0 +1,218 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 02.08.2016, 16:14:41
+    Author     : prog
+*/
+.comments-ss .comment_row {
+  margin-bottom: 25px;
+  padding-left: 65px;
+  position: relative;
+  min-height: 50px;
+}
+.comments-ss .remainingText .textareaFeedback {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  font-size: 12px;
+  background-color: #e5f1f8;
+  padding: 3px 7px;
+  display: none;
+  min-width: 20px;
+  text-align: center;
+}
+.comments-ss .comment-date {
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: top;
+  color: #8b9da7;
+  margin-top: 2px;
+}
+.comments-ss .rankingStars {
+  display: inline-block;
+  vertical-align: top;
+  margin-left: 10px;
+}
+.comments-ss .author-name {
+  margin-bottom: 6px;
+}
+.comments-ss .author-name a {
+  font-size: 15px;
+  display: inline-block;
+  line-height: 18px;
+  font-weight: bold;
+  color: #34495e;
+}
+.comments-ss span.bold {
+  font-weight: bold;
+}
+.comments-ss .hidden_comment {
+  display: none;
+}
+.comments-ss .user_logo {
+  height: 50px;
+  width: 50px;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-position: 50% 0;
+  background-size: cover;
+  display: block;
+}
+.comments-ss .benefits {
+  margin: 15px 0;
+  padding-left: 25px;
+  position: relative;
+}
+.comments-ss .benefits .title {
+  font-weight: bold;
+  display: table;
+  margin-bottom: 5px;
+  color: #50c403;
+}
+.comments-ss .benefits:before {
+  content: '+';
+  position: absolute;
+  left: 1px;
+  top: 1px;
+  color: #50c403;
+  font-size: 20px;
+  font-weight: bold;
+}
+.comments-ss .lacks {
+  margin: 15px 0;
+  padding-left: 25px;
+  position: relative;
+}
+.comments-ss .lacks .title {
+  font-weight: bold;
+  display: table;
+  margin-bottom: 5px;
+  color: #50c403;
+  color: red;
+}
+.comments-ss .lacks:before {
+  content: '–';
+  font-family: 'Arial';
+  position: absolute;
+  left: 2px;
+  top: -1px;
+  color: red;
+  font-size: 20px;
+  font-weight: bold;
+}
+.comments-ss .rankingStars {
+  /*        .starRating:not(old) > label:before{
+            content         : '';
+            display         : block;
+            width           : 1.5em;
+            height          : 1.5em;
+            background      : url('../img/star-on.svg');
+            background-size : contain;
+            opacity         : 0;
+            transition      : opacity 0.2s linear;
+        }*/
+}
+.comments-ss .rankingStars p {
+  margin: 0 0 1.5em;
+  padding: 0;
+}
+.comments-ss .rankingStars a {
+  color: #9c3;
+  text-decoration: none;
+}
+.comments-ss .rankingStars .starRating {
+  display: inline-block;
+  width: 7.5em;
+  height: 1.5em;
+  overflow: hidden;
+  vertical-align: bottom;
+}
+.comments-ss .rankingStars .starRating > input {
+  margin-right: -100%;
+  opacity: 0;
+}
+.comments-ss .rankingStars .starRating > label {
+  width: 1.4em;
+  height: 1.4em;
+  display: block;
+  float: right;
+  position: relative;
+  background: url('../img/star-on.svg');
+  background-size: contain;
+}
+.comments-ss .rankingStars .starRating > label.not_active {
+  opacity: 0;
+  background: url('../img/star-off.svg');
+}
+.comments-ss .rankingStars .starRating > label:hover:before,
+.comments-ss .rankingStars .starRating > label:hover ~ label:before,
+.comments-ss .rankingStars .starRating:not(:hover) > :checked ~ label:before {
+  opacity: 1;
+}
+.comments-ss .new_comment #commentRating{margin:10px;}
+.comments-ss .new_comment textarea {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  width: 100%;
+  height: 82px;
+  border: 1px solid #58bdff;
+  padding: 10px 0 0 8px;
+  line-height: normal;
+  color: #34495e;
+  font-size: 13px;
+  margin-top: 3px;
+  margin-bottom: 0px;
+}
+.comments-ss .new_comment input[type='text'] {
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  width: 100%;
+  height: 40px;
+  border: 1px solid #58bdff;
+  text-indent: 8px;
+  line-height: normal;
+  color: #34495e;
+  font-size: 13px;
+  margin-top: 3px;
+  margin-bottom: 17px;
+}
+.comments-ss .new_comment input[type="submit"] {
+  border: 0px;
+  padding: 0 15px;
+  height: 40px;
+  background-color: #009fff;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  padding: 0 10px;
+  font-size: 15px;
+  margin-bottom: 20px;
+  color: #fff;
+  cursor: pointer;
+  transition: .3s;
+  -webkit-transition: .3s;
+  width: 100%;
+}
+.comments-ss .new_comment .plus_minus {
+  height: 16px;
+  padding: 0 27px 0 0;
+  color: #009fff;
+  font-size: 14px;
+  position: relative;
+  margin-right: 5px;
+  cursor: pointer;
+  display: table;
+  margin: 11px 0 17px;
+}
+.comments-ss .new_comment {
+  max-width: 565px;
+}
+.comments-ss .new_comment {
+  margin: 40px 0 25px;
+  padding: 1px 0 5px 65px;
+  position: relative;
+}
