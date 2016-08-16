@@ -1,0 +1,255 @@
+<?php
+/*
+ * @author mrtimosh@gmail.com
+ */
+
+
+$path=dirname(dirname(realpath(__FILE__))); 
+ 
+include_once($path."/wp-load.php");
+
+
+
+header('Content-Type: text/html; charset=utf-8');
+ini_set('error_reporting', E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
+$url = 'http://weightless.com.ua';
+
+$time_start = microtime(true);
+
+
+$parser = new Ss_Sitemap($url);
+
+
+
+$parsed_urls = $parser->start();
+
+//echo '<pre>';
+//print_r($parser->sitemap_elements);
+//print_r($parser->errors);
+///var_dump($parser);
+//echo '</pre>';
+
+$time_end = microtime(true);
+$time = $time_end - $time_start;
+
+echo "Парсил $time секунд " . count($parser->sitemap_elements) . " элементов \n";
+
+sitemap_generator($parser->sitemap_elements);
+
+class Ss_Sitemap {
+
+    public $sitemap_elements;
+    public $domain_to_skan;
+    private $_robots;
+    private $_exluded_urls=["http://weightless.com.ua/",""];
+    
+    public function __construct($domain_to_skan) {
+
+        if (filter_var($domain_to_skan, FILTER_VALIDATE_URL) === false) {
+            throw new Exception("bad domain to scan: " . $domain_to_skan);
+        }
+
+
+        $this->domain_to_skan = $domain_to_skan;
+        $parsed = parse_url($domain_to_skan);
+        $this->_robots = file("http://{$parsed['host']}/robots.txt");    
+    
+    }
+    
+    public function start(){
+         
+       
+        $this->set_homepage_property();
+        $this->find_category_in_db();
+        $this->find_posts_in_db();
+        
+        return $this;
+        
+    }
+    
+    private function set_homepage_property(){
+        $url = $this->domain_to_skan;
+        $data['priority'] = '1';
+        $data['changefreq'] = 'weekly';
+        $data['type'] = 'main category';
+        $this->set_sitemap_property($url, $data);
+    }
+    
+    private function find_products_in_db(){
+        
+    }
+    
+    private function find_category_in_db(){
+        $categories = get_categories(array(
+            'orderby' => 'name',
+            'hide_empty'       => 0,
+                ));
+
+        foreach ($categories as $key => $category) {
+   
+            $url = esc_url(get_category_link($category->term_id));
+            $data['priority'] = '0.8';
+            $data['changefreq'] = 'weekly';
+            $data['type'] = 'category';
+            $this->set_sitemap_property($url, $data);
+        }
+
+    }
+    
+    private function find_posts_in_db(){
+        
+        $posts = get_posts(array('numberposts' => -1,));
+        foreach ($posts as $key => $post) {
+           
+            $url = esc_url(get_permalink($post->ID));
+        
+            $data['priority'] = '0.5';
+            $data['changefreq'] = 'monthly';
+             $data['type'] = 'post';
+            $this->set_sitemap_property($url, $data);
+        }
+        
+        
+        $pages = get_pages(array('numberposts' => -1,));
+        foreach ($pages as $key => $page) {
+            $url = esc_url(get_permalink($page->ID));
+            $children = get_pages('child_of='.$page->ID);
+            
+            if( count( $children ) != 0 ) { 
+                $data['priority'] = '0.8';
+                $data['changefreq'] = 'weekly';
+                  $data['type'] = 'page category';
+            }
+            else { 
+                $data['priority'] = '0.5';
+                $data['changefreq'] = 'monthly';
+                $data['type'] = 'page';
+            }
+           
+
+          
+            $this->set_sitemap_property($url, $data);
+        }
+
+        
+    }
+    
+    private function set_sitemap_property($url, $data) {
+        if($this->is_excluded_url($url)){
+            return;
+        }
+        if(!$this->does_robots_allowed($url)){
+            return;
+        }
+        
+        if(isset($this->sitemap_elements[$url]) || isset($this->sitemap_elements[$url.'/'])){
+            return;
+        }
+        
+        $data['url'] = $url;
+        
+        $data['priority'] = $data['priority'];
+        $data['changefreq'] = $data['changefreq'];
+        $data['type'] = $data['type'];
+        $this->sitemap_elements[$url] = $data;
+    }
+    
+    private function is_excluded_url($url){
+        if(in_array($url, $this->_exluded_urls)) {return false;}
+        return false;
+    }
+    
+        // Original PHP robots_allowed function code by www.chirp.com.au
+    /*
+     * checks if robots.txt allowed this url
+     * @var string $url your url
+     * @var string $useragent
+     * @return bolean
+     */
+    private function does_robots_allowed($url, $useragent = false) {
+        // parse url to retrieve host and path
+        $parsed = parse_url($url);
+
+        $agents = array(preg_quote('*'));
+        if ($useragent)
+            $agents[] = preg_quote($useragent);
+        $agents = implode('|', $agents);
+
+        // location of robots.txt file
+        $robotstxt = $this->_robots;
+
+        // if there isn't a robots, then we're allowed in
+        if (empty($robotstxt))
+            return true;
+
+        $rules = array();
+        $ruleApplies = false;
+        foreach ($robotstxt as $line) {
+            // skip blank lines
+            if (!$line = trim($line))
+                continue;
+
+            // following rules only apply if User-agent matches $useragent or '*'
+            if (preg_match('/^\s*User-agent: (.*)/i', $line, $match)) {
+                $ruleApplies = preg_match("/($agents)/i", $match[1]);
+            }
+            if ($ruleApplies && preg_match('/^\s*Disallow:(.*)/i', $line, $regs)) {
+                // an empty rule implies full access - no further tests required
+                if (!$regs[1])
+                    return true;
+                // add rules that apply to array for testing
+                $rules[] = preg_quote(trim($regs[1]), '/');
+            }
+        }
+        if(!empty($parsed['path'])){
+            foreach ($rules as $rule) {
+                // check if page is disallowed to us
+                if (preg_match("/^$rule/", $parsed['path']))
+                    return false;
+            }
+        }
+        
+
+        // page is not disallowed
+        return true;
+    }
+
+}
+
+
+
+
+
+
+function sitemap_generator($links_array) {
+    
+    ob_start();
+    $output = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    $output .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+    echo $output;
+    ?>
+    <?php foreach ($links_array as $i => $post) { ?>
+        <url>
+            <loc><?php print $post['url'] ?></loc>
+            <priority><?php print $post['priority'] ?></priority>
+            <changefreq><?php print $post['changefreq'] ?></changefreq>
+        </url>
+    <?php } ?>
+    </urlset>
+    <?php
+    $page = ob_get_contents();
+    ob_end_clean();
+    
+    $path=dirname(dirname(realpath(__FILE__))); 
+    $file = fopen($path."/sitemap.xml","w");
+    if ( !$file ) {
+        throw new Exception('File open failed.');
+    } 
+    
+    fwrite($file,$page);
+    fclose($file);
+}
+
