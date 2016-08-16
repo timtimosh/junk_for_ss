@@ -1,0 +1,14 @@
+/*Add noindex to low value pages*/
+function add_noindex_tags(){
+	# Get page number for paginated archives.
+	$paged = intval( get_query_var( 'paged' ) );
+
+	# Add noindex tag to all archive, search and 404 pages.
+	//if( is_archive() || is_search() || is_404() )
+	//echo '<meta name="robots" content="noindex,follow">';
+		
+	# Add noindex tag to homepage paginated pages.  
+	if( $paged >= 2 )
+	echo '<meta name="robots" content="noindex,follow">';
+}
+add_action('wp_head','add_noindex_tags', 4 );

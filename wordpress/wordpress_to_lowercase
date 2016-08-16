@@ -1,0 +1,25 @@
+/*
+Plugin Name: Redirect uppercase to lowercase urls in WordPress
+Plugin URI: http://awordpress.net
+Description: Fixes 404s in pages caused by uppercase letters in url.
+Version: 1.0
+Author: Pavel Petrov
+Author URI: http://awordpress.net
+License: GPL2
+*/
+function isPartUppercase($string) {
+ return (bool) preg_match('/[A-Z]/', $string);
+}
+add_action('parse_request', 'parseUppercase');
+function parseUppercase($wp) {
+ // only process requests with "lid"
+ $query = $wp->query_vars;
+ $query = $query['name'];
+ if(isPartUppercase($query))
+ {
+ $link = site_url().'/'.strtolower($query);
+ wp_redirect( $link , 301 );
+ exit;
+
+ }
+}
