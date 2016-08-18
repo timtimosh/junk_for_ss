@@ -1,0 +1,5 @@
+
+RewriteRule ^ua/index.php([^?]*) $1 [L,QSA]
+
+
+
