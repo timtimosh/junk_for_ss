@@ -4,11 +4,13 @@
  */
 
 header('Content-Type: text/html; charset=utf-8');
+set_time_limit(0);
+
 ini_set('error_reporting', E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 
-$url = 'http://weightless.com.ua';
+$url = 'http://dec-edu.com';
 
 $time_start = microtime(true);
 
@@ -27,7 +29,8 @@ echo '</pre>';
 $time_end = microtime(true);
 $time = $time_end - $time_start;
 
-echo "Парсил $time секунд " . count($parser->links) . " элементов \n";
+echo "Парсил $time секунд " . count($parser->links) . " элементов. \n Попыток вызвать curl: ".$parser->curl_tries;
+sitemap_generator($parser->links);
 
 class UrlParser {
 
@@ -41,9 +44,10 @@ class UrlParser {
     public  $errors; //parsed url with errors
     private $_except;
     private $_robots;
-
+    public $curl_tries;
+    
     const PARSER = 'curl'; //or file_get_contents
-
+    
     public function __construct($domain_to_skan = '') {
 
         if (filter_var($domain_to_skan, FILTER_VALIDATE_URL) === false) {
@@ -80,7 +84,7 @@ class UrlParser {
 
     private function recursive_fetch_url($url,$parent_url=false) {
         $this->_iterator++;
-        if ($this->_iterator > 5) { return; }
+        if ($this->_iterator > 30000) { return; }
 
         $html = $this->get_url_body($url);
 
@@ -89,7 +93,7 @@ class UrlParser {
             return;
         }
         
-  
+        
         $doc = new DOMDocument();
         libxml_use_internal_errors(true);
         $doc->loadHTML($html);
@@ -98,6 +102,7 @@ class UrlParser {
         $url_data = array();
         $url_data['link'] = $url;
         $url_data['parent_url'] = $parent_url;
+        $url_data['title']= $this->getPageTitle($html);
         
         $this->links[$url] = $url_data;
         
@@ -108,10 +113,10 @@ class UrlParser {
             
             $child_href = $this->url_normalize($element->getAttribute('href'),$url);
             
-          //  echo $child_href.'<=become was=> '.$element->getAttribute('href').'<br>';
+       //    echo $child_href.'<=become was=> '.$element->getAttribute('href').'<br>';
              
             //if element was already parsed not parse it or it is bad url 
-            if (isset($this->links[$child_href]) || !$this->is_url_valid($child_href)) {continue;}
+            if (isset($this->links[$child_href]) || !$this->is_url_valid($child_href,$url)) {continue;}
             
            
             $this->recursive_fetch_url($child_href,$url);
@@ -120,9 +125,33 @@ class UrlParser {
 
         unset($doc);
     }
-
+    
+    private function getPageTitle($html){
+       
+        if (preg_match('/<title>(.+)<\/title>/',$html,$matches) && isset($matches[1] )){
+           $title = $matches[1];
+        }
+        elseif(preg_match('/<h1>(.+)<\/h1>/',$html,$matches) && isset($matches[1] )){
+            $title = "No title on this page but h1 found: ".strip_tags($matches[1]);
+        }
+        else{
+           $title = "No title on this page";
+        }
+        return $title;
+    }
     private function url_normalize($url,$parent) {
+        if($parent == ''){$parent=$this->_domain_to_skan;}
+        
+        $url=$this->parentDottsReplace($url,$parent);
+        
         $url = strtok($url, '#');
+        
+        if(strpos($url, 'mailto:')!==false){
+            return $url;
+        }
+        if(strpos($url, 'javascript:')!==false){
+           return $url;
+        }
         
         $path=str_replace("/", "", $url);
 //it was link on main page
@@ -130,7 +159,8 @@ class UrlParser {
         
         if (strpos($url, 'http') === false) {
             if ($url{0} != '/'){
-                if(!empty($parent) and $parent{strlen($parent)}!='/'){  $url = $parent. '/' . $url; }
+               
+                if(!empty($parent) and $parent{strlen($parent)-1}!='/'){  $url = $parent. '/' . $url; }
                 else {  $url = $parent. '' . $url; }
             }
             else
@@ -147,20 +177,28 @@ class UrlParser {
      * @var string $child_href
      */
 
-    private function is_url_valid($child_href) {
-
+    private function is_url_valid($child_href,$parent='') {
+        if($parent == ''){$parent=$this->_domain_to_skan;}
+        
         if (strpos($child_href, 'http') !== false && strpos($child_href, $this->_domain_to_skan) === false) {
-            $this->errors_repository($child_href, "bad url or other domain");
+            $this->errors_repository($child_href, "bad url or other domain parent: ".$parent);
         } elseif (strpos($child_href, '@') !== false) {
-            $this->errors_repository($child_href, "bad url @ in url");
+            $this->errors_repository($child_href, "bad url @ in url parent: ".$parent);
         } elseif (self::str_contains_one_of_array_els($child_href, $this->_bad_links)) {
-            $this->errors_repository($child_href, "looks like its a file ");
+            $this->errors_repository($child_href, "looks like its a file  parent: ".$parent);
         } elseif (!$this->robots_allowed($child_href, $useragent = false)) {
-            $this->errors_repository($child_href, "robots not allowed this page");
+            $this->errors_repository($child_href, "robots not allowed this page parent: ".$parent);
         } elseif (filter_var($child_href, FILTER_VALIDATE_URL) === false) {
-            $this->errors_repository($child_href, " this url is not valid");
+            $this->errors_repository($child_href, " this url is not valid parent: ".$parent);
         }
-
+        if (strpos($child_href, 'javascript:') !== false) {
+            $this->errors_repository($child_href, "bad url javascript: parent: ".$parent);
+        }
+        
+        if (strpos($child_href, '!') !== false) {
+            $this->errors_repository($child_href, "bad url contain `!` symbol in url: ".$parent);
+        }
+        
 
         if (!isset($this->errors[$child_href])) {
             return true;
@@ -199,12 +237,16 @@ class UrlParser {
     }
 
     private function get_url_body($url) {
+        $this->curl_tries++;
+        // random timeout on any curl request
+        sleep(mt_rand(0,2)); 
         if (self::PARSER == 'curl') {
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_ENCODING, ""); //gzip
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
             curl_setopt($ch, CURLOPT_VERBOSE, 1);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30); // curl timeout remains at 30 seconds
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.0.3705; .NET CLR 1.1.4322)');
             
             $output = curl_exec($ch);
@@ -240,6 +282,7 @@ class UrlParser {
      * @return bolean
      */
     private function robots_allowed($url, $useragent = false) {
+        return true; //игнорировать файл роботов
         // parse url to retrieve host and path
         $parsed = parse_url($url);
 
@@ -380,22 +423,66 @@ class UrlParser {
     private function priority($url) {
         
     }
+    
+    private function parentDottsReplace($url,$parent){
+       
+        
+        $check_url=explode('..',$url);
+        if(count($check_url)>1){
+            $parent_remove_segments=explode("/",$parent);
+            $reversed = array_reverse($parent_remove_segments);
+            $temp_url=$parent;
+            foreach($reversed as $key=>$val){
 
+                $temp_url=str_replace('/'.$val, "", $temp_url);
+            }
+            $url=str_replace('../', "", $url);
+            $url = $temp_url.'/'.$url;
+        }
+        return $url;
+    }
 }
 
 function sitemap_generator($links_array) {
-
+	$xml_file='sitemap.xml';
+ob_start();
     $output = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     $output .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
     echo $output;
     ?>
     <?php foreach ($links_array as $i => $post) { ?>
         <url>
-            <loc><?php print $post['url'] ?></loc>
+            <loc><?php print $post['link'] ?></loc>
             <lastmod><?php print $post['date_updated'] ?></lastmod>
+            <parent_url><?php print $post['parent_url'] ?></parent_url>
+           
         </url>
     <?php } ?>
     </urlset>
     <?php
+    $output = ob_get_contents();
+	ob_end_clean();
+   $fp = fopen($xml_file, 'w');
+   fwrite($fp, $output);
+  fclose($fp);
+
 }
 
+function csv_generator($links_array) {
+    
+    $fp = fopen('remarketing_data2.html', 'w');
+    $array['title']='title';
+    $array['link']='link';
+    //$array['parent']='parent_url';
+    
+    fputcsv($fp, $array);
+  
+    foreach ($links_array as $fields) {
+        $array['title']=$fields['title'];
+        $array['link']=$fields['link'];
+      //  $array['parent']=$fields['parent_url'];
+        fputcsv($fp, $array);
+    }
+
+    fclose($fp);
+}
